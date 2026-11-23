@@ -1,0 +1,2434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Vault | Biometric Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="/static/js/face-api.min.js"></script>
+    <script>
+        if (typeof faceapi === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* ========================================================
+           WHITE & LIGHT GREEN THEME SCROLLBAR
+           ======================================================== */
+        
+        html,
+        body,
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #10b981 #f0fdf4;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+        }
+        
+         ::-webkit-scrollbar-track {
+            background: #f0fdf4;
+            border-radius: 9999px;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+            border-radius: 9999px;
+            border: 2px solid #f0fdf4;
+        }
+        
+         ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+        }
+        /* ========================================================
+           LIGHT GREEN & WHITE BUTTON DESIGN SYSTEM
+           ======================================================== */
+        /* Primary Light Green Action Button */
+        
+        .btn-green-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            letter-spacing: 0.02em;
+            border: 1px solid #34d399;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            user-select: none;
+        }
+        
+        .btn-green-primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 6px 18px 0 rgba(16, 185, 129, 0.45);
+            transform: translateY(-1.5px);
+        }
+        
+        .btn-green-primary:active {
+            transform: translateY(1px) scale(0.99);
+        }
+        /* Secondary Mint Soft Button */
+        
+        .btn-green-secondary {
+            background: #ecfdf5;
+            color: #065f46 !important;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            border: 1px solid #a7f3d0;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            user-select: none;
+        }
+        
+        .btn-green-secondary:hover {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            transform: translateY(-1px);
+        }
+        /* Clean White / Green Outline Button */
+        
+        .btn-green-outline {
+            background: #ffffff;
+            color: #059669 !important;
+            border: 1.5px solid #10b981;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .btn-green-outline:hover {
+            background: #f0fdf4;
+            border-color: #059669;
+            transform: translateY(-1px);
+        }
+        /* Table Download Button */
+        
+        .btn-action-download {
+            background: #ecfdf5;
+            color: #047857 !important;
+            border: 1px solid #a7f3d0;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            transition: all 0.18s ease;
+            cursor: pointer;
+        }
+        
+        .btn-action-download:hover {
+            background: #10b981;
+            color: #ffffff !important;
+            border-color: #10b981;
+            transform: translateY(-1px);
+        }
+        /* Table Delete Button */
+        
+        .btn-action-delete {
+            background: #fff1f2;
+            color: #e11d48 !important;
+            border: 1px solid #fecdd3;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.65rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.18s ease;
+            cursor: pointer;
+        }
+        
+        .btn-action-delete:hover {
+            background: #e11d48;
+            color: #ffffff !important;
+            border-color: #e11d48;
+            transform: translateY(-1px);
+        }
+        /* Sidebar Navigation Pill Button */
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 0.75rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #475569;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            width: 100%;
+            user-select: none;
+        }
+        
+        .nav-btn:hover {
+            color: #065f46;
+            background: #f0fdf4;
+            border-color: #d1fae5;
+        }
+        
+        .nav-btn.active {
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        /* Disconnect / Logout Button */
+        
+        .btn-danger-soft {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #e11d48;
+            border-radius: 0.75rem;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-danger-soft:hover {
+            background: #e11d48;
+            color: #ffffff;
+            border-color: #e11d48;
+        }
+        
+        video {
+            transform: scaleX(-1);
+        }
+        /* Scanning Laser (Light Green) */
+        
+        @keyframes scanLaser {
+            0% {
+                top: 4%;
+                opacity: 0.95;
+            }
+            50% {
+                top: 92%;
+                opacity: 1;
+            }
+            100% {
+                top: 4%;
+                opacity: 0.95;
+            }
+        }
+        
+        .scanner-beam-hud {
+            position: absolute;
+            left: 4%;
+            width: 92%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #34d399, #10b981, #6ee7b7, transparent);
+            box-shadow: 0 0 12px #10b981;
+            animation: scanLaser 2s infinite ease-in-out;
+            pointer-events: none;
+        }
+        /* Camera HUD Brackets (Light Green) */
+        
+        .hud-bracket {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-color: #10b981;
+            pointer-events: none;
+            transition: border-color 0.3s;
+        }
+        
+        .hud-bracket-tl {
+            top: 16px;
+            left: 16px;
+            border-top-width: 3px;
+            border-left-width: 3px;
+            border-top-left-radius: 6px;
+        }
+        
+        .hud-bracket-tr {
+            top: 16px;
+            right: 16px;
+            border-top-width: 3px;
+            border-right-width: 3px;
+            border-top-right-radius: 6px;
+        }
+        
+        .hud-bracket-bl {
+            bottom: 16px;
+            left: 16px;
+            border-bottom-width: 3px;
+            border-left-width: 3px;
+            border-bottom-left-radius: 6px;
+        }
+        
+        .hud-bracket-br {
+            bottom: 16px;
+            right: 16px;
+            border-bottom-width: 3px;
+            border-right-width: 3px;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .hud-bracket.success {
+            border-color: #059669 !important;
+            filter: drop-shadow(0 0 8px #10b981);
+        }
+        
+        .hud-oval {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 54%;
+            height: 72%;
+            border: 2px dashed rgba(16, 185, 129, 0.55);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        
+        .hud-oval.success {
+            border-color: #059669;
+            border-style: solid;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .obfuscated-blur {
+            filter: blur(10px);
+            user-select: none;
+            pointer-events: none;
+        }
+        /* ========================================================
+           COLLAPSIBLE TASKBAR (SIDEBAR) STYLES
+           ======================================================== */
+        
+        #taskbar {
+            transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        #taskbar.taskbar-expanded {
+            width: 240px;
+        }
+        
+        #taskbar.taskbar-collapsed {
+            width: 72px;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        #taskbar.taskbar-collapsed .taskbar-text,
+        #taskbar.taskbar-collapsed .taskbar-header-info,
+        #taskbar.taskbar-collapsed .taskbar-widget {
+            display: none !important;
+        }
+        
+        #taskbar.taskbar-collapsed .nav-btn {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        #taskbar.taskbar-collapsed .btn-danger-soft {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        #taskbar.taskbar-collapsed .taskbar-logo-box {
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-600 selection:text-white">
+
+    <!-- Top Clean Header (White & Light Green) -->
+    <header class="bg-white border-b border-emerald-100 text-xs py-3 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center gap-3">
+            <!-- Open/Close Taskbar Button (Visible when logged in) -->
+            <button id="taskbar-toggle-btn" onclick="toggleTaskbar()" class="hidden p-2 rounded-xl text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition border border-slate-200" title="Open / Close Taskbar">
+                <i id="taskbar-toggle-icon" class="fa-solid fa-bars text-sm"></i>
+            </button>
+
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold tracking-tight text-slate-900 text-sm">Cloud<span class="text-emerald-600">Vault</span></span>
+                    <span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold ml-2 hidden sm:inline">AES-256 Storage</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs">
+            <span id="https-badge" class="text-[11px] font-medium text-slate-500 hidden md:inline"></span>
+
+            <button id="header-privacy-btn" onclick="togglePrivacyShield()" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-[11px] transition hover:bg-emerald-100 shadow-sm cursor-pointer">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Privacy Shield Active
+            </button>
+
+            <div id="auth-nav-links" class="flex items-center gap-2 text-slate-500 font-medium text-xs">
+                <button onclick="showAuth('login')" class="px-3 py-1.5 rounded-xl text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 border border-slate-200 transition font-semibold text-xs">Sign In</button>
+                <button onclick="showAuth('register')" class="btn-green-outline px-3.5 py-1.5 text-xs">Register</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Shoulder-Surfer Alert Banner -->
+    <div id="shoulder-alert-banner" class="hidden bg-rose-600 text-white text-xs px-5 py-2.5 font-bold flex items-center justify-between shadow-lg z-50">
+        <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-base animate-bounce"></i>
+            <span>Security Alert: Multiple faces detected. Screen obfuscated.</span>
+        </div>
+        <button onclick="$('shoulder-alert-banner').classList.add('hidden')" class="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition ml-4">Dismiss</button>
+    </div>
+
+    <!-- Walk-Away Privacy Shield Overlay Screen -->
+    <div id="walkaway-shield-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-white text-center">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-400/40 flex items-center justify-center mb-4 text-3xl text-emerald-400 shadow-lg">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <h3 class="text-xl font-bold tracking-tight text-white">Privacy Lock: Owner Away</h3>
+        <p class="text-xs text-slate-300 max-w-sm mt-1.5">No face detected. Storage vault locked.</p>
+        <button onclick="dismissPrivacyOverlay()" class="mt-5 btn-green-primary px-6 py-2.5 text-xs shadow-lg">
+            Resume Session
+        </button>
+    </div>
+
+    <!-- AUTHENTICATION CONTAINER (White & Light Green Theme) -->
+    <div id="auth" class="flex-1 flex items-center justify-center p-4 sm:p-6 overflow-y-auto max-h-[calc(100vh-65px)]">
+
+        <!-- Clean Sign In Card -->
+        <div id="screen-login" class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 max-w-md w-full p-6 sm:p-8 border border-emerald-100">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl border border-emerald-100 shadow-sm">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900">Sign In</h2>
+                <p class="text-xs text-slate-500 mt-1">Unlock your secure cloud vault</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Email ID Entry (No pretyped example, placeholder = title) -->
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-700 tracking-wide">Email ID</label>
+                        <span id="login-email-badge" class="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-notch fa-spin text-[8px] hidden" id="login-email-spinner"></i>
+                            <span id="login-email-badge-text"></span>
+                        </span>
+                    </div>
+                    <div class="relative mt-1">
+                        <input id="login-email" type="email" placeholder="Email ID" oninput="debounceCheckLoginEmail()" class="w-full px-3.5 py-2.5 text-sm font-medium border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 transition">
+                        <div id="login-email-icon" class="absolute right-3.5 top-3 text-xs text-slate-400">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div id="login-email-feedback" class="mt-1.5 min-h-[1.2rem] text-[11px] leading-tight"></div>
+                    <div id="keystroke-status" class="mt-1 text-[10px] font-mono-code text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg flex items-center justify-between hidden">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-emerald-600"></i> Behavioral Keystroke Dynamics:</span>
+                        <span id="keystroke-metrics" class="font-bold text-emerald-700">Active</span>
+                    </div>
+                </div>
+
+                <!-- Integrated Camera Biometric Box -->
+                <div class="border border-emerald-200 bg-emerald-50/40 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-camera text-emerald-600"></i> Face Recognition
+                        </span>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full font-mono-code">
+                            PAD Active
+                        </span>
+                    </div>
+
+                    <!-- Camera Stream -->
+                    <div id="login-cam-box" class="hidden relative rounded-xl overflow-hidden bg-slate-950 aspect-[4/3] flex items-center justify-center border border-emerald-800 shadow-inner">
+                        <video id="login-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+                        <canvas id="login-canvas" class="hidden"></canvas>
+
+                        <!-- Light Green Scanning Laser & Reticle -->
+                        <div class="scanner-beam-hud"></div>
+                        <div id="login-bracket-tl" class="hud-bracket hud-bracket-tl"></div>
+                        <div id="login-bracket-tr" class="hud-bracket hud-bracket-tr"></div>
+                        <div id="login-bracket-bl" class="hud-bracket hud-bracket-bl"></div>
+                        <div id="login-bracket-br" class="hud-bracket hud-bracket-br"></div>
+                        <div id="login-face-guide" class="hud-oval"></div>
+
+                        <!-- Live Telemetry -->
+                        <div class="absolute bottom-2.5 left-2.5 right-2.5 bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[11px] flex items-center justify-between font-mono-code">
+                            <span id="login-cam-status" class="truncate flex items-center gap-1.5 text-slate-200">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Camera Active
+                            </span>
+                            <button type="button" onclick="stopCam()" class="px-2 py-0.5 bg-rose-900/70 hover:bg-rose-800 text-rose-200 font-bold text-[10px] rounded uppercase ml-2">Cancel</button>
+                        </div>
+                    </div>
+
+                    <button id="btn-login-face" type="button" onclick="handleFaceLogin()" class="w-full btn-green-primary py-3 px-4 text-xs">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                        <span id="btn-login-face-text">Start Camera & Verify Face</span>
+                    </button>
+                </div>
+
+                <!-- Emergency Decoy Toggle -->
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-slate-700 cursor-pointer hover:text-slate-900 font-semibold select-none">
+                            <input id="login-duress-check" type="checkbox" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                            <span>Emergency Decoy Mode</span>
+                        </label>
+                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-mono-code">Coercion Defense</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-tight pl-6">
+                        Use only under duress: hides all real personal files and shows an empty decoy safe. Leave unchecked for normal login.
+                    </p>
+                </div>
+
+                <!-- Passkey Button -->
+                <button type="button" onclick="passkeyLogin()" class="w-full btn-green-secondary py-2.5 px-4 text-xs">
+                    <i class="fa-solid fa-fingerprint text-sm text-emerald-600"></i> Authenticate with Mobile Sensor
+                </button>
+
+                <!-- Zero-Sensor Smartphone QR Login -->
+                <button type="button" onclick="openQrModal()" class="w-full btn-green-outline py-2.5 px-4 text-xs font-bold">
+                    <i class="fa-solid fa-qrcode text-emerald-600"></i> Login via Smartphone QR (Zero-Sensor Mode)
+                </button>
+
+                <p id="login-msg" class="text-xs text-center min-h-[1.2rem] pt-1 font-medium"></p>
+            </div>
+
+            <p class="text-xs text-center text-slate-500 mt-5 pt-3 border-t border-slate-100">
+                New user? <button onclick="showAuth('register')" class="text-emerald-600 font-bold hover:text-emerald-700 underline underline-offset-2 transition">Enroll & Register</button>
+            </p>
+        </div>
+
+        <!-- Clean Registration Screen -->
+        <div id="screen-register" class="hidden bg-white rounded-2xl shadow-xl shadow-slate-200/50 max-w-md w-full p-6 sm:p-8 border border-emerald-100">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl border border-emerald-100 shadow-sm">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900">Register Account</h2>
+                <p class="text-xs text-slate-500 mt-1">Enroll your facial biometrics</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-700 tracking-wide">Full Name</label>
+                    <input id="reg-name" type="text" placeholder="e.g. Vaasthava" class="w-full mt-1 px-3.5 py-2.5 text-sm font-medium border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                </div>
+
+                <!-- Email ID Entry (No pretyped example, placeholder = title) -->
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-700 tracking-wide">Email ID</label>
+                        <span id="reg-email-badge-text" class="text-[10px] font-semibold text-slate-400"></span>
+                    </div>
+                    <div class="relative mt-1">
+                        <input id="reg-email" type="email" placeholder="Email ID" oninput="debounceCheckRegEmail()" class="w-full px-3.5 py-2.5 text-sm font-medium border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-8">
+                        <div id="reg-email-icon" class="absolute right-3 top-3 text-xs text-slate-400">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div id="reg-email-feedback" class="mt-1 min-h-[1rem] text-[11px]"></div>
+                </div>
+
+                <!-- Camera Registration Box -->
+                <div class="border border-emerald-200 bg-emerald-50/40 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800">Face Scan Samples</span>
+                        <span id="reg-badge" class="text-[10px] bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded">Not Enrolled</span>
+                    </div>
+
+                    <div id="reg-cam-box" class="hidden relative rounded-xl overflow-hidden bg-slate-950 aspect-[4/3] flex items-center justify-center border border-emerald-800">
+                        <video id="reg-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+                        <canvas id="reg-canvas" class="hidden"></canvas>
+
+                        <div class="scanner-beam-hud"></div>
+                        <div class="hud-bracket hud-bracket-tl"></div>
+                        <div class="hud-bracket hud-bracket-tr"></div>
+                        <div class="hud-bracket hud-bracket-bl"></div>
+                        <div class="hud-bracket hud-bracket-br"></div>
+                        <div id="reg-face-guide" class="hud-oval"></div>
+
+                        <div class="absolute bottom-2.5 left-2.5 right-2.5 bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[11px] flex items-center justify-between font-mono-code">
+                            <span id="reg-cam-status" class="truncate text-slate-200">Align your face...</span>
+                            <span id="reg-sample-count" class="font-bold text-emerald-400 ml-2">0/3</span>
+                        </div>
+                    </div>
+
+                    <!-- Live 3-Sample Capture Progress Indicators -->
+                    <div id="reg-sample-indicators" class="grid grid-cols-3 gap-2">
+                        <div id="sample-ind-1" class="text-center py-1.5 px-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-400 font-semibold transition">
+                            <i class="fa-regular fa-circle text-[9px] mr-1"></i> Sample 1
+                        </div>
+                        <div id="sample-ind-2" class="text-center py-1.5 px-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-400 font-semibold transition">
+                            <i class="fa-regular fa-circle text-[9px] mr-1"></i> Sample 2
+                        </div>
+                        <div id="sample-ind-3" class="text-center py-1.5 px-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-400 font-semibold transition">
+                            <i class="fa-regular fa-circle text-[9px] mr-1"></i> Sample 3
+                        </div>
+                    </div>
+
+                    <button id="btn-reg-scan" type="button" onclick="enrollFaceFromCam()" class="w-full btn-green-outline py-2.5 px-4 text-xs">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                        <span id="btn-reg-scan-text">Start Camera & Scan Face</span>
+                    </button>
+                </div>
+
+                <!-- Optional Sensor -->
+                <div class="border border-slate-200 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Mobile Sensor (Optional)</p>
+                        <p id="reg-passkey-status" class="text-[11px] text-slate-400">Add physical passkey</p>
+                    </div>
+                    <button type="button" onclick="enrollFingerprint()" class="btn-green-secondary px-3 py-1.5 text-xs">
+                        <i class="fa-solid fa-fingerprint text-emerald-600"></i> Bind
+                    </button>
+                </div>
+
+                <p id="reg-msg" class="text-xs text-center min-h-[1.2rem] font-medium"></p>
+
+                <button type="button" onclick="registerUser()" class="w-full btn-green-primary py-3 px-4 text-sm">
+                    Complete Registration
+                </button>
+            </div>
+
+            <p class="text-xs text-center text-slate-500 mt-5 pt-3 border-t border-slate-100">
+                Already registered? <button onclick="showAuth('login')" class="text-emerald-600 font-bold hover:text-emerald-700 underline underline-offset-2 transition">Sign In</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (Dashboard & Taskbar) -->
+    <div id="app" class="hidden flex-1 flex flex-col md:flex-row min-h-0 bg-slate-50 text-slate-800">
+
+        <!-- COLLAPSIBLE TASKBAR (SIDEBAR) -->
+        <aside id="taskbar" class="taskbar-expanded shrink-0 bg-white border-b md:border-b-0 md:border-r border-emerald-100 flex md:flex-col justify-between p-4 gap-4 shadow-sm">
+            <div>
+                <!-- Taskbar Brand & Toggle Icon -->
+                <div class="taskbar-logo-box flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 flex items-center justify-center text-white text-base shadow-sm shrink-0">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <div class="taskbar-header-info">
+                            <p class="text-sm font-extrabold text-slate-900 leading-tight">Cloud<span class="text-emerald-600">Vault</span></p>
+                            <p id="vault-mode-subtitle" class="text-[10px] text-slate-400 font-mono-code">5 GB Storage</p>
+                        </div>
+                    </div>
+                    <!-- Quick collapse toggle inside taskbar -->
+                    <button onclick="toggleTaskbar()" class="hidden md:flex p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition" title="Toggle Taskbar">
+                        <i id="taskbar-inner-toggle" class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex md:flex-col gap-1.5 overflow-x-auto text-xs font-semibold">
+                    <button id="nav-dashboard" onclick="switchTab('dashboard')" class="nav-btn active" title="Dashboard">
+                        <i class="fa-solid fa-gauge-high w-4 text-sm shrink-0 text-center"></i>
+                        <span class="taskbar-text truncate">Dashboard</span>
+                    </button>
+                    <button id="nav-files" onclick="switchTab('files')" class="nav-btn" title="My Files">
+                        <i class="fa-regular fa-folder-open w-4 text-sm shrink-0 text-center"></i>
+                        <span class="taskbar-text truncate">My Files</span>
+                    </button>
+                    <button id="nav-upload" onclick="switchTab('upload')" class="nav-btn" title="Upload Files">
+                        <i class="fa-solid fa-cloud-arrow-up w-4 text-sm shrink-0 text-center"></i>
+                        <span class="taskbar-text truncate">Upload & Shard</span>
+                    </button>
+                    <button id="nav-intrusions" onclick="switchTab('intrusions')" class="nav-btn" title="Unauthorized Entries">
+                        <i class="fa-solid fa-triangle-exclamation w-4 text-sm shrink-0 text-center text-rose-500"></i>
+                        <span class="taskbar-text truncate flex-1 text-left">Unauthorized Entries</span>
+                        <span id="taskbar-intrusion-badge" class="hidden px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-rose-600 text-white">0</span>
+                    </button>
+                    <button id="nav-profile" onclick="switchTab('profile')" class="nav-btn" title="Security Specs">
+                        <i class="fa-solid fa-user-shield w-4 text-sm shrink-0 text-center"></i>
+                        <span class="taskbar-text truncate">Security Specs</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Taskbar Bottom Actions -->
+            <div class="space-y-3">
+                <div class="taskbar-widget p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl space-y-1.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-eye-slash text-emerald-600"></i> Privacy Guard</span>
+                        <input id="privacy-shield-checkbox" type="checkbox" checked onchange="togglePrivacyShield()" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-tight">Auto-lock on absence.</p>
+                </div>
+
+                <button onclick="logout()" class="btn-danger-soft" title="Disconnect Vault">
+                    <i class="fa-solid fa-arrow-right-from-bracket shrink-0 text-center w-4"></i>
+                    <span class="taskbar-text truncate">Disconnect</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Viewport -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+
+            <!-- Top View Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h2 id="view-title" class="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
+                        <span id="duress-vault-pill" class="hidden text-[10px] bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-full border border-amber-300 font-mono-code">
+                            <i class="fa-solid fa-shield"></i> Decoy Vault
+                        </span>
+                    </div>
+                    <p id="view-subtitle" class="text-xs text-slate-500 mt-0.5">Secure Cloud Storage</p>
+                </div>
+
+                <div class="flex items-center gap-3 text-xs">
+                    <span id="verified-badge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-bold font-mono-code text-[11px] flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Verified
+                    </span>
+                    <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+                        <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-xs shadow-sm" id="user-avatar">V</div>
+                        <span id="user-display-name" class="font-bold text-slate-700 truncate max-w-[12rem]">User</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Dashboard -->
+            <div id="tab-dashboard" class="space-y-6">
+                <!-- Intrusion Incident Alert Banner -->
+                <div id="intrusion-alert-banner" class="hidden bg-rose-600 text-white text-xs px-5 py-3 rounded-2xl shadow-lg flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold animate-pulse">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold">Security Alert: Unauthorized Intrusion Attempt Detected</p>
+                            <p id="intrusion-banner-text" class="text-[11px] text-rose-100">3 failed face login attempts recorded. An intruder photograph was captured and an alert email was sent.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openIntruderModal()" class="px-3 py-1.5 bg-white text-rose-700 font-bold rounded-xl text-xs hover:bg-rose-50 transition shadow-sm">
+                            <i class="fa-solid fa-eye"></i> View Intruder
+                        </button>
+                        <button onclick="dismissIntrusionAlert()" class="px-2.5 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs transition">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- 4 Top KPI Cards (Clean White with Green Accents) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-database text-sm"></i>
+                            </div>
+                            <span id="stat-pct" class="text-[10px] font-mono-code font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">0% Used</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Storage Quota</p>
+                        <p class="text-xl font-bold text-slate-900"><span id="stat-used">0.0 MB</span> <span class="text-xs font-normal text-slate-400">/ 5.00 GB</span></p>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div id="stat-bar" class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono-code font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">PROTECTED</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Stored Files</p>
+                        <p id="stat-count" class="text-xl font-bold text-slate-900">0</p>
+                        <p class="text-[10px] text-slate-400 font-mono-code">AES-256 Vault</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-hard-drive text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono-code font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">FREE</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Available Space</p>
+                        <p id="stat-free" class="text-xl font-bold text-slate-900">5.00 GB</p>
+                        <p class="text-[10px] text-slate-400 font-mono-code">5 GB Max</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-camera text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono-code font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">ACTIVE</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Biometric Guard</p>
+                        <p class="text-xl font-bold text-slate-900">Active</p>
+                        <p class="text-[10px] text-emerald-600 font-mono-code flex items-center gap-1">
+                            <i class="fa-solid fa-check"></i> Integrated Cam
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Recent Files & Storage Gauge -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-900 text-sm">Recent Activity</h3>
+                            <button onclick="switchTab('files')" class="btn-green-outline px-3 py-1 text-xs font-semibold">
+                                <span>View All</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div id="recent-files-list" class="divide-y divide-slate-100 text-xs max-h-72 overflow-y-auto pr-1"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-slate-900 text-sm">Storage Usage</h3>
+                            <span class="text-[10px] text-emerald-600 font-mono-code font-bold">5.0 GB Quota</span>
+                        </div>
+                        <div class="flex items-center justify-center my-3 relative">
+                            <svg class="w-36 h-36 transform -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" stroke="#f1f5f9" stroke-width="10" fill="none" />
+                                <circle id="donut-ring" cx="60" cy="60" r="50" stroke="#10b981" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="314.16" stroke-dashoffset="314.16" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center justify-center text-center">
+                                <span id="donut-used" class="text-base font-bold text-slate-900 font-mono-code">0.0 MB</span>
+                                <span class="text-[10px] text-slate-400">of 5.0 GB</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-xs pt-3 border-t border-slate-100">
+                            <div class="flex justify-between">
+                                <span class="flex items-center gap-2 text-slate-500"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Used</span>
+                                <span id="legend-used" class="font-bold text-slate-700 font-mono-code">0.0 MB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="flex items-center gap-2 text-slate-500"><span class="w-2 h-2 rounded-full bg-slate-300"></span>Free</span>
+                                <span id="legend-free" class="font-bold text-emerald-600 font-mono-code">5.00 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Upload -->
+            <div id="tab-upload" class="hidden max-w-2xl">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <!-- Retention & Self-Destruct Policy -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700 tracking-wide uppercase">Retention & Self-Destruct Policy</label>
+                        <select id="upload-burn-rule" class="w-full px-3.5 py-2.5 text-xs font-semibold border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="NONE">Permanent Storage (Standard)</option>
+                            <option value="BURN_AFTER_READ">🔥 Burn After Read (Self-destruct on first access)</option>
+                            <option value="1_HOUR">⏳ 1 Hour Self-Destruct TTL</option>
+                            <option value="24_HOURS">⏳ 24 Hours Self-Destruct TTL</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <label class="text-xs font-bold text-slate-700 tracking-wide uppercase">Security Classification</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="p-3.5 border rounded-2xl flex items-center gap-3 cursor-pointer bg-white border-slate-200 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/50 transition">
+                                <input type="radio" name="upload-tier" value="STANDARD" checked class="text-emerald-600 focus:ring-emerald-500">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-900">Standard Vault</p>
+                                    <p class="text-[10px] text-slate-500">AES-256 Single Node</p>
+                                </div>
+                            </label>
+                            <label class="p-3.5 border rounded-2xl flex items-center gap-3 cursor-pointer bg-white border-slate-200 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/50 transition">
+                                <input type="radio" name="upload-tier" value="CONFIDENTIAL" class="text-emerald-600 focus:ring-emerald-500">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-900">Classified</p>
+                                    <p class="text-[10px] text-emerald-600 font-semibold">3-Node Cryptographic Sharding</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <label class="block border-2 border-dashed border-emerald-200 bg-emerald-50/30 rounded-2xl p-8 sm:p-10 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/50 transition group">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="font-bold text-sm text-slate-800">Click or drag files here</p>
+                        <p class="text-xs text-slate-500 mt-1">Files are secured and protected before storage</p>
+                        <input type="file" multiple class="hidden" onchange="handleFileUpload(event)">
+                    </label>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2.5">Upload Queue</h4>
+                        <div id="upload-queue" class="space-y-2 text-xs max-h-64 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: My Files -->
+            <div id="tab-files" class="hidden">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500">Vault Assets</span>
+                        <button onclick="syncFiles()" class="btn-green-secondary py-1.5 px-3 text-xs">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh View
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-mono-code text-[10px]">
+                                <tr>
+                                    <th class="py-3 px-4">Filename</th>
+                                    <th class="px-4">Security Tier</th>
+                                    <th class="px-4">Size</th>
+                                    <th class="px-4">Uploaded</th>
+                                    <th class="px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="files-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Unauthorized Entries -->
+            <div id="tab-intrusions" class="hidden space-y-6 max-w-4xl">
+                <!-- Intrusion Log Header Banner -->
+                <div class="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xl shrink-0 shadow-sm">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                Unauthorized Entries Log
+                                <span id="intrusions-count-badge" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 font-mono-code">0 Incidents</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Trap-cam photographs of unauthorized login attempts with instant deletion controls</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="fetchIntrusionLogs()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-arrows-rotate text-xs text-emerald-600"></i> Refresh
+                        </button>
+                        <button type="button" onclick="deleteAllIntrusions()" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-trash-can text-xs"></i> Clear All Entries
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Intrusion Gallery Cards Container -->
+                <div id="intrusions-list-container" class="space-y-3">
+                    <div class="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
+                        <i class="fa-solid fa-circle-notch fa-spin text-lg mb-2 text-emerald-600"></i>
+                        <p>Loading unauthorized entry records...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Profile & Specs -->
+            <div id="tab-profile" class="hidden max-w-lg">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-md" id="profile-avatar">V</div>
+                        <div>
+                            <h3 id="profile-name" class="font-bold text-slate-900 text-base">Vaasthava</h3>
+                            <p id="profile-email" class="text-xs text-slate-500 font-mono-code">vaasthava@example.com</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 space-y-3 text-xs">
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px]">System Specifications</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-[10px] text-slate-500 font-medium">Cipher Protocol</p>
+                                <p class="font-bold text-slate-800 font-mono-code mt-0.5">AES-256-CBC</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-[10px] text-slate-500 font-medium">Key Derivation</p>
+                                <p class="font-bold text-slate-800 font-mono-code mt-0.5">PBKDF2-SHA256</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-[10px] text-slate-500 font-medium">Liveness Guard</p>
+                                <p class="font-bold text-emerald-700 font-mono-code mt-0.5">PAD v2.4 (Active)</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-[10px] text-slate-500 font-medium">Storage Quota</p>
+                                <p class="font-bold text-emerald-700 font-mono-code mt-0.5">5.00 GB Max</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Hidden background canvas for continuous presence monitor -->
+    <canvas id="bg-presence-canvas" class="hidden"></canvas>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const API = "/api",
+            MAX_STORAGE = 5 * 1024 ** 3,
+            JSON_HEADERS = {
+                "Content-Type": "application/json"
+            };
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[c]));
+
+        let authedUser = null,
+            currentUserEmail = "",
+            currentUserName = "";
+        let qrPollingTimer = null;
+        let activeIntrusion = null;
+        let activeBlobUrl = null;
+
+        // Behavioral Keystroke Dynamics Measurement
+        const keystrokeTimes = {
+            down: {},
+            dwells: [],
+            flights: [],
+            lastUp: 0
+        };
+
+        function initKeystrokeTracking() {
+            const el = $("login-email");
+            if (!el) return;
+            el.addEventListener("keydown", e => {
+                if (!keystrokeTimes.down[e.key]) {
+                    keystrokeTimes.down[e.key] = performance.now();
+                    if (keystrokeTimes.lastUp > 0) {
+                        const flight = performance.now() - keystrokeTimes.lastUp;
+                        if (flight > 5 && flight < 1500) keystrokeTimes.flights.push(flight);
+                    }
+                }
+            });
+            el.addEventListener("keyup", e => {
+                const now = performance.now();
+                if (keystrokeTimes.down[e.key]) {
+                    const dwell = now - keystrokeTimes.down[e.key];
+                    if (dwell > 10 && dwell < 800) keystrokeTimes.dwells.push(dwell);
+                    delete keystrokeTimes.down[e.key];
+                }
+                keystrokeTimes.lastUp = now;
+
+                if (keystrokeTimes.dwells.length >= 3) {
+                    const avgDwell = Math.round(keystrokeTimes.dwells.reduce((a, b) => a + b, 0) / keystrokeTimes.dwells.length);
+                    $("keystroke-status").classList.remove("hidden");
+                    $("keystroke-metrics").textContent = `${avgDwell}ms cadence (Human Verified)`;
+                }
+            });
+        }
+
+        function getKeystrokeProfile() {
+            const d = keystrokeTimes.dwells;
+            const f = keystrokeTimes.flights;
+            return {
+                dwell_avg: d.length ? (d.reduce((a, b) => a + b, 0) / d.length) : 0,
+                flight_avg: f.length ? (f.reduce((a, b) => a + b, 0) / f.length) : 0,
+                sample_count: d.length
+            };
+        }
+
+        // ==============================================================
+        // FEATURE 1: INTRUDER TRAP-CAM & AUTO-EMAIL ALERT
+        // ==============================================================
+        function checkAndShowIntrusions(intrusions) {
+            if (!intrusions || !intrusions.length) {
+                $("intrusion-alert-banner").classList.add("hidden");
+                return;
+            }
+            activeIntrusion = intrusions[0];
+            $("intrusion-alert-banner").classList.remove("hidden");
+            $("intrusion-banner-text").textContent = `Security Incident on ${activeIntrusion.timestamp.slice(0, 19).replace('T', ' ')} (IP: ${activeIntrusion.ip_address}). Intruder photo captured and alert email sent.`;
+        }
+
+        function openIntruderModal() {
+            if (!activeIntrusion) return;
+            $("modal-intruder").classList.remove("hidden");
+            $("intruder-img").src = activeIntrusion.intruder_image_b64 || "https://placehold.co/400x300?text=No+Photo+Captured";
+            $("intruder-time").textContent = activeIntrusion.timestamp.slice(0, 19).replace('T', ' ');
+            $("intruder-ip").textContent = activeIntrusion.ip_address || "127.0.0.1";
+        }
+
+        function closeIntruderModal() {
+            $("modal-intruder").classList.add("hidden");
+        }
+
+        async function dismissIntrusionAlert() {
+            closeIntruderModal();
+            $("intrusion-alert-banner").classList.add("hidden");
+            try {
+                await fetch(`${API}/dismiss-intrusion`, {
+                    method: "POST",
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({
+                        email: authedUser
+                    })
+                });
+                fetchIntrusionLogs();
+            } catch (e) {}
+        }
+
+        function togglePassVisibility(id) {
+            const input = $(id);
+            if (input) {
+                input.type = input.type === "password" ? "text" : "password";
+            }
+        }
+
+        async function fetchIntrusionLogs() {
+            if (!authedUser) return;
+            const container = $("intrusions-list-container");
+            const badge = $("intrusions-count-badge");
+            const tbBadge = $("taskbar-intrusion-badge");
+
+            try {
+                const res = await fetch(`${API}/intrusion-logs?email=${encodeURIComponent(authedUser)}`);
+                const logs = await res.json();
+
+                if (badge) badge.textContent = `${logs.length} Incident${logs.length === 1 ? '' : 's'}`;
+                const unack = logs.filter(l => !l.acknowledged).length;
+                if (tbBadge) {
+                    if (unack > 0) {
+                        tbBadge.textContent = unack;
+                        tbBadge.classList.remove("hidden");
+                    } else {
+                        tbBadge.classList.add("hidden");
+                    }
+                }
+
+                if (!container) return;
+
+                if (!logs.length) {
+                    container.innerHTML = `
+                        <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-2">
+                            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-xl border border-emerald-100">
+                                <i class="fa-solid fa-shield-check"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm">No Unauthorized Entries Recorded</h4>
+                            <p class="text-xs text-slate-500 max-w-sm mx-auto">Zero-trust biometric perimeter is active. Any intruder failing authentication 3 times will have their photograph captured and logged here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = logs.map(log => {
+                            const timeStr = log.timestamp ? log.timestamp.slice(0, 19).replace('T', ' ') : 'Just now';
+                            const hasImg = Boolean(log.intruder_image_b64);
+                            const imgSrc = hasImg ? (log.intruder_image_b64.startsWith('data:') ? log.intruder_image_b64 : 'data:image/jpeg;base64,' + log.intruder_image_b64) : '';
+
+                            return `
+                        <div class="bg-white p-4 rounded-2xl border ${log.acknowledged ? 'border-slate-200' : 'border-rose-300 bg-rose-50/20'} shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 transition hover:shadow-md">
+                            <div class="flex items-center gap-4 w-full sm:w-auto">
+                                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border ${log.acknowledged ? 'border-slate-300' : 'border-rose-400'} shrink-0 relative flex items-center justify-center cursor-pointer" onclick="viewIntruderPhoto('${hasImg ? imgSrc : ''}', '${timeStr}', '${esc(log.ip_address || '127.0.0.1')}')">
+                                    ${hasImg ?
+                                        `<img src="${imgSrc}" class="w-full h-full object-cover">
+                                         <div class="absolute inset-0 bg-black/20 hover:bg-black/40 flex items-center justify-center text-white text-xs opacity-0 hover:opacity-100 transition"><i class="fa-solid fa-magnifying-glass-plus"></i></div>` :
+                                        `<i class="fa-solid fa-user-secret text-slate-500 text-xl"></i>`
+                                    }
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-900 text-xs">Security Intrusion Incident</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono-code font-bold ${log.acknowledged ? 'bg-slate-100 text-slate-600' : 'bg-rose-100 text-rose-700 border border-rose-200'}">
+                                            ${log.acknowledged ? 'Acknowledged' : 'New Intrusion'}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 font-mono-code">
+                                        <i class="fa-regular fa-clock mr-1 text-slate-400"></i>${timeStr} (UTC) · <i class="fa-solid fa-network-wired mx-1 text-slate-400"></i>IP: ${esc(log.ip_address || '127.0.0.1')}
+                                    </p>
+                                    <div class="flex items-center gap-2 text-[10px] font-semibold text-emerald-700">
+                                        <span><i class="fa-solid fa-camera mr-1"></i>Trap-Cam Photo Captured</span>
+                                        <span>•</span>
+                                        <span><i class="fa-solid fa-envelope mr-1"></i>${log.alert_email_sent ? 'Email Dispatched' : 'Alert Processed'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="viewIntruderPhoto('${hasImg ? imgSrc : ''}', '${timeStr}', '${esc(log.ip_address || '127.0.0.1')}')" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition flex items-center justify-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-expand text-xs"></i> View
+                                </button>
+                                <button type="button" onclick="deleteSingleIntrusion(${log.id})" class="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm" title="Delete this entry">
+                                    <i class="fa-solid fa-trash-can text-xs"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+            } catch (err) {
+                if (container) container.innerHTML = `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">Error loading intrusion logs: ${esc(err.message)}</div>`;
+            }
+        }
+
+        function viewIntruderPhoto(imgSrc, timestamp, ip) {
+            $("modal-intruder").classList.remove("hidden");
+            $("intruder-img").src = imgSrc || "https://placehold.co/400x300?text=No+Photo+Captured";
+            $("intruder-time").textContent = timestamp || "Logged";
+            $("intruder-ip").textContent = ip || "127.0.0.1";
+        }
+
+        async function dismissAllIntrusions() {
+            if (!authedUser) return;
+            try {
+                await fetch(`${API}/dismiss-intrusion`, {
+                    method: "POST",
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({ email: authedUser })
+                });
+                fetchIntrusionLogs();
+                $("intrusion-alert-banner").classList.add("hidden");
+            } catch (e) {}
+        }
+
+        async function deleteSingleIntrusion(logId) {
+            if (!confirm("Are you sure you want to permanently delete this unauthorized entry record?")) return;
+            try {
+                const res = await fetch(`${API}/intrusion-logs/${logId}?email=${encodeURIComponent(authedUser)}`, {
+                    method: "DELETE"
+                });
+                if (res.ok) {
+                    fetchIntrusionLogs();
+                } else {
+                    const data = await res.json();
+                    alert("Error deleting record: " + (data.error || "Failed"));
+                }
+            } catch (err) {
+                alert("Error deleting record: " + err.message);
+            }
+        }
+
+        async function deleteAllIntrusions() {
+            if (!authedUser) return;
+            if (!confirm("Are you sure you want to permanently delete ALL unauthorized entry records?")) return;
+            try {
+                const res = await fetch(`${API}/intrusion-logs?email=${encodeURIComponent(authedUser)}`, {
+                    method: "DELETE"
+                });
+                if (res.ok) {
+                    fetchIntrusionLogs();
+                    $("intrusion-alert-banner").classList.add("hidden");
+                } else {
+                    const data = await res.json();
+                    alert("Error clearing records: " + (data.error || "Failed"));
+                }
+            } catch (err) {
+                alert("Error clearing records: " + err.message);
+            }
+        }
+
+        // ==============================================================
+        // FEATURE 2: QR MOBILE BIOMETRIC BRIDGE (ZERO-SENSOR LOGIN)
+        // ==============================================================
+        async function openQrModal() {
+            $("modal-qr").classList.remove("hidden");
+            $("qr-status-text").textContent = "Creating session...";
+            clearInterval(qrPollingTimer);
+
+            try {
+                const res = await fetch(`${API}/qr-session/create`, { method: "POST" });
+                const data = await res.json();
+                const fullAuthUrl = window.location.origin + data.auth_url;
+                
+                $("qr-code-img").src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(fullAuthUrl)}`;
+                $("qr-status-text").textContent = "Awaiting smartphone scan...";
+
+                qrPollingTimer = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`${API}/qr-session/status/${data.token}`);
+                        const statusData = await statusRes.json();
+
+                        if (statusRes.ok && statusData.status === "AUTHENTICATED") {
+                            clearInterval(qrPollingTimer);
+                            $("qr-status-text").textContent = "Biometrics Verified! Unlocking...";
+                            await sleep(500);
+                            closeQrModal();
+                            unlockVault(statusData.email, statusData.user_name || statusData.email.split("@")[0], "Mobile QR Biometric Bridge");
+                        }
+                    } catch (e) {}
+                }, 1500);
+
+            } catch (err) {
+                $("qr-status-text").textContent = "Failed to create QR session: " + err.message;
+            }
+        }
+
+        function closeQrModal() {
+            clearInterval(qrPollingTimer);
+            $("modal-qr").classList.add("hidden");
+        }
+
+        // ==============================================================
+        // FEATURE 3: IN-MEMORY ZERO-TRACE FILE PREVIEWER
+        // ==============================================================
+        async function previewFile(index) {
+            const file = userFiles[index];
+            if (!file) return;
+
+            $("preview-filename").textContent = file.name;
+            $("preview-filesize").textContent = formatBytes(file.size_bytes);
+            $("preview-content-box").innerHTML = '<div class="text-center py-12 text-slate-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-emerald-600"></i><p>Loading securely in RAM...</p></div>';
+            $("modal-preview").classList.remove("hidden");
+
+            if (activeBlobUrl) {
+                URL.revokeObjectURL(activeBlobUrl);
+                activeBlobUrl = null;
+            }
+
+            try {
+                const res = await fetch(`${API}/download/${file.id}?email=${encodeURIComponent(authedUser)}&disposition=inline`);
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    $("preview-content-box").innerHTML = `<p class="text-rose-600 font-bold">Preview error: ${err.error || 'Access denied'}</p>`;
+                    return;
+                }
+
+                const blob = await res.blob();
+                activeBlobUrl = URL.createObjectURL(blob);
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+                    $("preview-content-box").innerHTML = `<img src="${activeBlobUrl}" alt="Preview" class="max-h-[65vh] max-w-full rounded-xl mx-auto shadow-md">`;
+                } else if (ext === "pdf") {
+                    $("preview-content-box").innerHTML = `<iframe src="${activeBlobUrl}" class="w-full h-[65vh] rounded-xl border border-slate-200"></iframe>`;
+                } else if (["txt", "json", "csv", "py", "html", "md", "log", "js", "css"].includes(ext)) {
+                    const textContent = await blob.text();
+                    $("preview-content-box").innerHTML = `<pre class="bg-slate-900 text-emerald-400 p-4 rounded-xl max-h-[65vh] w-full overflow-auto font-mono-code text-xs text-left">${esc(textContent.slice(0, 10000))}</pre>`;
+                } else {
+                    $("preview-content-box").innerHTML = `
+                        <div class="text-center py-8 space-y-2">
+                            <i class="fa-solid fa-file-shield text-4xl text-emerald-600 mb-2"></i>
+                            <p class="font-bold text-slate-800">${esc(file.name)}</p>
+                            <p class="text-xs text-slate-500">File loaded in RAM. Click 'Download' in the table to save it.</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                $("preview-content-box").innerHTML = `<p class="text-rose-600 font-bold">Failed to load: ${err.message}</p>`;
+            }
+        }
+
+        function closePreviewModal() {
+            if (activeBlobUrl) {
+                URL.revokeObjectURL(activeBlobUrl);
+                activeBlobUrl = null;
+            }
+            $("preview-content-box").innerHTML = '';
+            $("modal-preview").classList.add("hidden");
+        }
+        let cameraStream = null, faceApiModelsLoaded = false;
+        let enrolledFaceSamples = [], enrolledCredId = null, userFiles = [];
+        let isDuressMode = false;
+
+        let loginEmailTimer = null;
+        let regEmailTimer = null;
+
+        // Privacy Shield state
+        let privacyShieldEnabled = true;
+        let presenceIntervalId = null;
+        let consecutiveZeroFaces = 0;
+
+        // Toggle Taskbar (Sidebar) Open & Close Feature
+        function toggleTaskbar() {
+            const tb = $("taskbar");
+            if (!tb) return;
+            const isCollapsed = tb.classList.contains("taskbar-collapsed");
+            if (isCollapsed) {
+                tb.classList.remove("taskbar-collapsed");
+                tb.classList.add("taskbar-expanded");
+                const innerIcon = $("taskbar-inner-toggle");
+                if (innerIcon) innerIcon.className = "fa-solid fa-chevron-left text-xs";
+            } else {
+                tb.classList.remove("taskbar-expanded");
+                tb.classList.add("taskbar-collapsed");
+                const innerIcon = $("taskbar-inner-toggle");
+                if (innerIcon) innerIcon.className = "fa-solid fa-chevron-right text-xs";
+            }
+        }
+
+        // HTTPS & Localhost validation
+        (function checkSecurityContext() {
+            const b = $("https-badge");
+            const isSecure = location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+            b.textContent = isSecure ? "Enclave: Secure" : "Enclave: Insecure";
+            b.className = "text-[11px] font-medium " + (isSecure ? "text-emerald-700" : "text-rose-600");
+        })();
+
+        function msg(elementId, text, colorClass = "text-slate-500") {
+            const el = $(elementId);
+            if (!el) return;
+            el.textContent = text;
+            el.className = `text-xs text-center min-h-[1.2rem] pt-1 font-medium ${colorClass}`;
+        }
+
+        function validateEmailFormat(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function debounceCheckLoginEmail() {
+            clearTimeout(loginEmailTimer);
+            loginEmailTimer = setTimeout(checkLoginEmailAccount, 320);
+        }
+
+        function debounceCheckRegEmail() {
+            clearTimeout(regEmailTimer);
+            regEmailTimer = setTimeout(checkRegEmailAccount, 320);
+        }
+
+        async function checkLoginEmailAccount() {
+            const email = $("login-email").value.trim().toLowerCase();
+            const badge = $("login-email-badge-text");
+            const fb = $("login-email-feedback");
+            const spinner = $("login-email-spinner");
+            const icon = $("login-email-icon");
+
+            if (!email) {
+                badge.textContent = "";
+                fb.innerHTML = "";
+                icon.innerHTML = '<i class="fa-solid fa-envelope"></i>';
+                return null;
+            }
+
+            if (!validateEmailFormat(email)) {
+                badge.textContent = "Invalid format";
+                badge.className = "text-[10px] font-semibold text-rose-500";
+                fb.innerHTML = '<span class="text-rose-600 font-medium">Please enter a valid email address.</span>';
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i>';
+                return { valid: false };
+            }
+
+            spinner.classList.remove("hidden");
+            badge.textContent = "Checking...";
+            badge.className = "text-[10px] font-semibold text-slate-400";
+
+            try {
+                const res = await fetch(`${API}/check-email?email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+                spinner.classList.add("hidden");
+
+                if (data.exists) {
+                    badge.textContent = "Registered ✓";
+                    badge.className = "text-[10px] font-bold text-emerald-600";
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+                    fb.innerHTML = `<span class="text-emerald-700 font-semibold">Account: ${esc(data.user_name || "User")} · ${data.has_face ? "Face Enrolled ✓" : "Passkey Enrolled"}</span>`;
+                    return { valid: true, exists: true, data };
+                } else {
+                    badge.textContent = "Not registered";
+                    badge.className = "text-[10px] font-semibold text-amber-600";
+                    icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-amber-500"></i>';
+                    fb.innerHTML = `<span class="text-amber-700 font-medium">Not registered yet. <button type="button" onclick="showAuth('register'); $('reg-email').value='${esc(email)}'; debounceCheckRegEmail();" class="text-emerald-600 font-bold underline hover:text-emerald-800 ml-1">Register →</button></span>`;
+                    return { valid: true, exists: false };
+                }
+            } catch (e) {
+                spinner.classList.add("hidden");
+                badge.textContent = "Offline check";
+                return null;
+            }
+        }
+
+        async function checkRegEmailAccount() {
+            const email = $("reg-email").value.trim().toLowerCase();
+            const badge = $("reg-email-badge-text");
+            const fb = $("reg-email-feedback");
+            const icon = $("reg-email-icon");
+
+            if (!email) {
+                badge.textContent = "";
+                fb.innerHTML = "";
+                icon.innerHTML = '<i class="fa-solid fa-envelope"></i>';
+                return;
+            }
+
+            if (!validateEmailFormat(email)) {
+                badge.textContent = "Invalid format";
+                badge.className = "text-[10px] font-semibold text-rose-500";
+                fb.innerHTML = '<span class="text-rose-600 font-medium">Invalid email address format.</span>';
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/check-email?email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+
+                if (data.exists) {
+                    badge.textContent = "Already exists";
+                    badge.className = "text-[10px] font-bold text-amber-600";
+                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>';
+                    fb.innerHTML = `<span class="text-amber-600 font-medium">Already registered. <button type="button" onclick="showAuth('login'); $('login-email').value='${esc(email)}'; debounceCheckLoginEmail();" class="text-emerald-600 font-bold underline hover:text-emerald-800 ml-1">Sign In →</button></span>`;
+                } else {
+                    badge.textContent = "Available ✓";
+                    badge.className = "text-[10px] font-bold text-emerald-600";
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+                    fb.innerHTML = '<span class="text-emerald-700 font-semibold">Email is available for registration.</span>';
+                }
+            } catch (e) {}
+        }
+
+        async function loadFaceApiModels() {
+            if (faceApiModelsLoaded) return true;
+            try {
+                const MODEL_URL = "/static/models";
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
+                faceApiModelsLoaded = true;
+                console.log("Local neural face models loaded successfully from /static/models!");
+                return true;
+            } catch (e) {
+                console.warn("Local face-api models load failed, trying CDN fallback:", e);
+                try {
+                    const FALLBACK_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK_URL),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL),
+                        faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL)
+                    ]);
+                    faceApiModelsLoaded = true;
+                    return true;
+                } catch (err2) {
+                    console.error("All face-api model loads failed:", err2);
+                    return false;
+                }
+            }
+        }
+
+        async function startCam(videoElId, boxElId) {
+            stopCam();
+            const video = $(videoElId);
+            const box = $(boxElId);
+            box.classList.remove("hidden");
+
+            let stream = null;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+                    audio: false
+                });
+            } catch (e1) {
+                console.warn("Retrying camera with generic constraints:", e1);
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                } catch (err) {
+                    box.classList.add("hidden");
+                    console.error("Camera access error:", err);
+                    throw new Error("Could not access integrated webcam. Please allow camera permissions in browser.");
+                }
+            }
+
+            cameraStream = stream;
+            video.srcObject = cameraStream;
+            try {
+                await video.play();
+            } catch (pErr) {
+                console.warn("Video play notice:", pErr);
+            }
+            return video;
+        }
+
+        function stopCam() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            $("login-cam-box").classList.add("hidden");
+            $("reg-cam-box").classList.add("hidden");
+        }
+
+        function captureCanvasFrame(video, canvasId) {
+            const canvas = $(canvasId);
+            canvas.width = video.videoWidth || 320;
+            canvas.height = video.videoHeight || 240;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL("image/jpeg", 0.85);
+        }
+
+        async function extractDescriptorOrSnapshot(video, canvasId) {
+            const snapshot = captureCanvasFrame(video, canvasId);
+            let descriptor = null;
+
+            if (!faceApiModelsLoaded) {
+                await loadFaceApiModels();
+            }
+
+            if (faceApiModelsLoaded && typeof faceapi !== "undefined") {
+                try {
+                    const canvas = $(canvasId);
+                    // 1. Try high-accuracy detection on native video element (inputSize 320, scoreThreshold 0.20)
+                    const detectPromise = faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.20 }))
+                        .withFaceLandmarks(true)
+                        .withFaceDescriptor();
+
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 2200));
+                    let detection = await Promise.race([detectPromise, timeoutPromise]);
+
+                    // 2. If video detect missed, try detection on captured canvas
+                    if (!detection && canvas) {
+                        detection = await faceapi
+                            .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.18 }))
+                            .withFaceLandmarks(true)
+                            .withFaceDescriptor();
+                    }
+
+                    if (detection && detection.descriptor) {
+                        descriptor = Array.from(detection.descriptor);
+                    }
+                } catch (e) {
+                    console.warn("Client descriptor fallback:", e);
+                }
+            }
+
+            return { descriptor, snapshot };
+        }
+
+        async function enrollFaceFromCam() {
+            const email = $("reg-email").value.trim().toLowerCase();
+            if (!email) return msg("reg-msg", "Please enter your Email ID first.", "text-rose-600");
+
+            msg("reg-msg", "Starting integrated camera...", "text-emerald-700");
+            $("btn-reg-scan-text").textContent = "Opening Camera...";
+
+            try {
+                // 1. Immediately open camera
+                const video = await startCam("reg-video", "reg-cam-box");
+                $("btn-reg-scan-text").textContent = "Capturing 3 Biometric Samples...";
+                $("reg-face-guide").classList.remove("success");
+
+                // Ensure neural AI engine is loaded before capturing samples
+                $("btn-reg-scan-text").textContent = "Loading AI Biometrics Engine...";
+                $("reg-cam-status").textContent = "Initializing neural face models...";
+                await loadFaceApiModels();
+
+                const indContainer = $("reg-sample-indicators");
+                if (indContainer) indContainer.classList.remove("hidden");
+
+                const samples = [];
+                const snapshots = [];
+
+                // Reset visual sample indicators
+                for (let k = 1; k <= 3; k++) {
+                    const el = $("sample-ind-" + k);
+                    if (el) {
+                        el.className = "text-center py-1.5 px-1 rounded-lg border border-slate-200 bg-white text-[10px] text-slate-400 font-semibold transition";
+                        el.innerHTML = `<i class="fa-regular fa-circle text-[9px] mr-1"></i> Sample ${k}`;
+                    }
+                }
+
+                const prompts = [
+                    "Sample 1 of 3: Look directly at camera",
+                    "Sample 2 of 3: Tilt head slightly or nod",
+                    "Sample 3 of 3: Hold steady for biometric lock"
+                ];
+
+                $("reg-sample-count").textContent = "0/3";
+
+                // Initial 600ms stabilization
+                await sleep(600);
+
+                // Sequential capture of all 3 distinct samples with face detection polling
+                for (let step = 1; step <= 3; step++) {
+                    $("reg-cam-status").textContent = prompts[step - 1];
+
+                    if (step > 1) {
+                        await sleep(700);
+                    }
+
+                    // Poll for high-confidence face detection
+                    let res = null;
+                    for (let attempt = 0; attempt < 12; attempt++) {
+                        res = await extractDescriptorOrSnapshot(video, "reg-canvas");
+                        if (res && res.descriptor && res.descriptor.length === 128) {
+                            break;
+                        }
+                        await sleep(200);
+                    }
+
+                    if (!res) res = await extractDescriptorOrSnapshot(video, "reg-canvas");
+                    if (res.snapshot) {
+                        snapshots.push(res.snapshot);
+                    }
+                    if (res.descriptor) {
+                        samples.push(res.descriptor);
+                    }
+
+                    // Immediately update UI indicators for this sample
+                    $("reg-sample-count").textContent = `${step}/3`;
+                    const ind = $("sample-ind-" + step);
+                    if (ind) {
+                        ind.className = "text-center py-1.5 px-1 rounded-lg border border-emerald-400 bg-emerald-50 text-[10px] text-emerald-800 font-bold transition shadow-sm";
+                        ind.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Sample ${step} ✓`;
+                    }
+
+                    $("reg-face-guide").classList.add("success");
+                    await sleep(350);
+                    $("reg-face-guide").classList.remove("success");
+                }
+
+                stopCam();
+
+                enrolledFaceSamples = samples;
+                window.enrolledFaceSnapshot = snapshots[snapshots.length - 1];
+                window.enrolledFaceSnapshots = snapshots;
+
+                $("reg-sample-count").textContent = "3/3";
+                $("reg-badge").textContent = "Enrolled (3/3 Samples ✓)";
+                $("reg-badge").className = "text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded";
+                msg("reg-msg", "All 3 face samples captured! Click 'Complete Registration' to store.", "text-emerald-600");
+                $("btn-reg-scan-text").textContent = "Re-scan Face Samples";
+
+            } catch (err) {
+                stopCam();
+                $("btn-reg-scan-text").textContent = "Start Camera & Scan Face";
+                msg("reg-msg", err.message, "text-rose-600");
+            }
+        }
+
+        async function handleFaceLogin() {
+            const email = $("login-email").value.trim().toLowerCase();
+            if (!email) {
+                $("login-email").focus();
+                return msg("login-msg", "Please enter your Email ID.", "text-rose-600");
+            }
+            if (!validateEmailFormat(email)) {
+                $("login-email").focus();
+                return msg("login-msg", "Invalid Email ID format.", "text-rose-600");
+            }
+
+            const acc = await checkLoginEmailAccount();
+            if (acc && !acc.exists) {
+                return msg("login-msg", "Account not registered. Please click 'Enroll & Register'.", "text-rose-600");
+            }
+
+            msg("login-msg", "Opening integrated camera...", "text-emerald-700");
+            $("btn-login-face-text").textContent = "Opening Camera...";
+
+            try {
+                // 1. Open webcam immediately
+                const video = await startCam("login-video", "login-cam-box");
+                $("btn-login-face-text").textContent = "Align Face in Circle...";
+                $("login-cam-status").textContent = "Webcam active · Center face";
+
+                // Ensure neural models are loaded for login
+                if (!faceApiModelsLoaded) {
+                    $("login-cam-status").textContent = "Loading AI Biometrics Engine...";
+                    await loadFaceApiModels();
+                }
+
+                let matched = false;
+                let lastError = "Could not authenticate face.";
+
+                for (let attempt = 1; attempt <= 8; attempt++) {
+                    $("login-cam-status").textContent = `Biometric scan: attempt ${attempt} of 8...`;
+                    await sleep(300);
+
+                    const res = await extractDescriptorOrSnapshot(video, "login-canvas");
+                    if (!res.descriptor && !res.snapshot) continue;
+
+                    const payload = {
+                        email: email,
+                        descriptor: res.descriptor,
+                        face_descriptor: res.descriptor,
+                        face_image: res.snapshot,
+                        duress: $("login-duress-check").checked,
+                        keystroke_dynamics: getKeystrokeProfile()
+                    };
+
+                    try {
+                        const apiRes = await fetch(`${API}/login-face`, {
+                            method: "POST",
+                            headers: JSON_HEADERS,
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await apiRes.json();
+
+                        if (apiRes.ok && (data.success || data.status === "ACCESS GRANTED")) {
+                            matched = true;
+                            const sim = data.similarity_pct || data.similarity_score || 96;
+                            $("login-face-guide").classList.add("success");
+                            document.querySelectorAll("#login-cam-box .hud-bracket").forEach(b => b.classList.add("success"));
+                            $("login-cam-status").textContent = `Face Matched (${sim}%) ✓`;
+
+                            await sleep(500);
+                            stopCam();
+
+                            isDuressMode = !!(data.is_decoy || data.is_duress);
+                            unlockVault(email, data.full_name || data.user || email.split("@")[0], `Face Biometric (${sim}%)`);
+                            if (data.intrusions) checkAndShowIntrusions(data.intrusions);
+                            return;
+                        } else {
+                            lastError = data.reason || data.error || "Face did not match enrolled template.";
+                            const sim = data.similarity_score || 0;
+                            $("login-cam-status").textContent = `Biometric mismatch (${sim}% match). Attempt ${data.failed_attempts || attempt} of 3.`;
+
+                            // Feature 1: Intruder Trap-Cam & Automated Email Alert Trigger
+                            if (data.intruder_captured || data.alert_email_sent) {
+                                stopCam();
+                                $("btn-login-face-text").textContent = "Start Camera & Verify Face";
+                                msg("login-msg", data.reason || "3 unauthorized attempts! Intruder captured and owner alerted via automated email.", "text-rose-600");
+
+                                activeIntrusion = {
+                                    intruder_image_b64: res.snapshot,
+                                    timestamp: new Date().toISOString(),
+                                    ip_address: "Logged"
+                                };
+                                openIntruderModal();
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        lastError = "Connection error: " + e.message;
+                    }
+                }
+
+                stopCam();
+                $("btn-login-face-text").textContent = "Start Camera & Verify Face";
+                msg("login-msg", lastError, "text-rose-600");
+
+            } catch (err) {
+                stopCam();
+                $("btn-login-face-text").textContent = "Start Camera & Verify Face";
+                msg("login-msg", err.message, "text-rose-600");
+            }
+        }
+
+        function unlockVault(email, fullName, authMethod) {
+            authedUser = email;
+            currentUserEmail = email;
+            currentUserName = fullName || email.split("@")[0];
+
+            $("auth").classList.add("hidden");
+            $("app").classList.remove("hidden");
+            $("taskbar-toggle-btn").classList.remove("hidden");
+            $("auth-nav-links").classList.add("hidden");
+
+            $("user-display-name").textContent = currentUserName;
+            $("profile-name").textContent = currentUserName;
+            $("profile-email").textContent = email;
+            const initial = (currentUserName || "U").charAt(0).toUpperCase();
+            $("user-avatar").textContent = initial;
+            $("profile-avatar").textContent = initial;
+
+            $("verified-badge").innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> ${esc(authMethod)}`;
+            $("verified-badge").className = "bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-bold font-mono-code text-[11px] flex items-center gap-1.5 shadow-sm";
+
+            const duressPill = $("duress-vault-pill");
+            if (isDuressMode) {
+                duressPill.classList.remove("hidden");
+                $("vault-mode-subtitle").textContent = "Decoy Vault Mode";
+            } else {
+                duressPill.classList.add("hidden");
+                $("vault-mode-subtitle").textContent = "5 GB Storage";
+            }
+
+            $("header-privacy-btn").classList.remove("hidden");
+            switchTab("dashboard");
+            syncFiles();
+            fetchIntrusionLogs();
+
+            if (privacyShieldEnabled && !presenceIntervalId) {
+                startContinuousPresence();
+            }
+        }
+
+        function logout() {
+            authedUser = null;
+            currentUserEmail = "";
+            currentUserName = "";
+            userFiles = [];
+            isDuressMode = false;
+
+            stopContinuousPresence();
+            stopCam();
+
+            $("app").classList.add("hidden");
+            $("taskbar-toggle-btn").classList.add("hidden");
+            $("auth-nav-links").classList.remove("hidden");
+            $("header-privacy-btn").classList.add("hidden");
+            $("auth").classList.remove("hidden");
+
+            showAuth("login");
+            msg("login-msg", "Session disconnected.", "text-slate-500");
+        }
+
+        function showAuth(mode) {
+            stopCam();
+            if (mode === "login") {
+                $("screen-login").classList.remove("hidden");
+                $("screen-register").classList.add("hidden");
+            } else {
+                $("screen-login").classList.add("hidden");
+                $("screen-register").classList.remove("hidden");
+            }
+        }
+
+        function switchTab(t) {
+            if (!authedUser) return showAuth("login");
+            ["dashboard", "files", "upload", "intrusions", "profile"].forEach(tabName => {
+                const el = $("tab-" + tabName);
+                if (el) el.classList.toggle("hidden", tabName !== t);
+                const nav = $("nav-" + tabName);
+                if (nav) {
+                    nav.className = tabName === t ? "nav-btn active" : "nav-btn";
+                }
+            });
+
+            const titles = {
+                dashboard: ["Dashboard", isDuressMode ? "Decoy Vault" : "Secure Cloud Storage"],
+                files: ["My Files", "Browse, preview and download vault assets"],
+                upload: ["Upload & Shard", "Upload and protect new files"],
+                intrusions: ["Unauthorized Entries", "Trap-cam photos of unauthorized login attempts with instant deletion controls"],
+                profile: ["Security Specs", "Cryptographic settings"]
+            };
+            if (titles[t]) {
+                $("view-title").textContent = titles[t][0];
+                $("view-subtitle").textContent = titles[t][1];
+            }
+
+            if (t === "files") syncFiles();
+            if (t === "intrusions") {
+                fetchIntrusionLogs();
+            }
+        }
+
+        function togglePrivacyShield() {
+            privacyShieldEnabled = !privacyShieldEnabled;
+            const btn = $("header-privacy-btn");
+            const chk = $("privacy-shield-checkbox");
+            if (chk) chk.checked = privacyShieldEnabled;
+
+            if (btn) {
+                btn.className = privacyShieldEnabled ?
+                    "items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-[11px] transition hover:bg-emerald-100 shadow-sm cursor-pointer flex" :
+                    "items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-semibold text-[11px] transition hover:bg-slate-200 shadow-sm cursor-pointer flex";
+                btn.innerHTML = privacyShieldEnabled ?
+                    '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Privacy Shield Active' :
+                    '<i class="fa-solid fa-shield-slash text-slate-400"></i> Privacy Shield Paused';
+            }
+
+            if (privacyShieldEnabled && authedUser && !presenceIntervalId) {
+                startContinuousPresence();
+            } else if (!privacyShieldEnabled) {
+                stopContinuousPresence();
+                $("shoulder-alert-banner").classList.add("hidden");
+                $("walkaway-shield-overlay").classList.add("hidden");
+                document.querySelectorAll("table, #recent-files-list").forEach(el => el.classList.remove("obfuscated-blur"));
+            }
+        }
+
+        async function startContinuousPresence() {
+            if (presenceIntervalId) return;
+            try {
+                if (!cameraStream) {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+                }
+            } catch (e) {
+                return;
+            }
+
+            const video = document.createElement("video");
+            video.srcObject = cameraStream;
+            video.muted = true;
+            await video.play().catch(() => {});
+
+            presenceIntervalId = setInterval(async () => {
+                if (!authedUser || !privacyShieldEnabled || isDuressMode) return;
+
+                if (faceApiModelsLoaded && typeof faceapi !== "undefined") {
+                    try {
+                        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }));
+                        const faceCount = detections.length;
+
+                        if (faceCount === 0) {
+                            consecutiveZeroFaces++;
+                            if (consecutiveZeroFaces >= 2) {
+                                $("walkaway-shield-overlay").classList.remove("hidden");
+                                document.querySelectorAll("table, #recent-files-list").forEach(el => el.classList.add("obfuscated-blur"));
+                                fetch(`${API}/log-privacy-event`, {
+                                    method: "POST", headers: JSON_HEADERS,
+                                    body: JSON.stringify({ email: authedUser, event: "WALK_AWAY_AUTO_LOCK", details: "Zero faces detected for 8s" })
+                                }).catch(() => {});
+                            }
+                        } else {
+                            consecutiveZeroFaces = 0;
+                            $("walkaway-shield-overlay").classList.add("hidden");
+                            if (faceCount === 1) {
+                                document.querySelectorAll("table, #recent-files-list").forEach(el => el.classList.remove("obfuscated-blur"));
+                                $("shoulder-alert-banner").classList.add("hidden");
+                            }
+                        }
+
+                        if (faceCount >= 2) {
+                            $("shoulder-alert-banner").classList.remove("hidden");
+                            document.querySelectorAll("table, #recent-files-list").forEach(el => el.classList.add("obfuscated-blur"));
+                            fetch(`${API}/log-privacy-event`, {
+                                    method: "POST", headers: JSON_HEADERS,
+                                    body: JSON.stringify({ email: authedUser, event: "SHOULDER_SURFER_DETECTED", details: `${faceCount} faces detected in frame` })
+                            }).catch(() => {});
+                        }
+
+                    } catch (err) {}
+                }
+            }, 4000);
+        }
+
+        function stopContinuousPresence() {
+            if (presenceIntervalId) {
+                clearInterval(presenceIntervalId);
+                presenceIntervalId = null;
+            }
+        }
+
+        function dismissPrivacyOverlay() {
+            $("walkaway-shield-overlay").classList.add("hidden");
+            consecutiveZeroFaces = 0;
+            document.querySelectorAll("table, #recent-files-list").forEach(el => el.classList.remove("obfuscated-blur"));
+        }
+
+        async function registerUser() {
+            const name = $("reg-name").value.trim() || "Vaasthava";
+            const email = $("reg-email").value.trim().toLowerCase();
+
+            if (!email) return msg("reg-msg", "Email ID is required.", "text-rose-600");
+            if (!validateEmailFormat(email)) return msg("reg-msg", "Invalid Email ID format.", "text-rose-600");
+            if (!enrolledFaceSamples.length && !window.enrolledFaceSnapshot) {
+                return msg("reg-msg", "Please scan your face with your integrated camera first.", "text-rose-600");
+            }
+
+            msg("reg-msg", "Enrolling biometric profile...", "text-emerald-700");
+
+            try {
+                const res = await fetch(`${API}/register`, {
+                    method: "POST",
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({
+                        full_name: name,
+                        email: email,
+                        face_descriptors: enrolledFaceSamples,
+                        face_image: window.enrolledFaceSnapshot || "",
+                        face_images: window.enrolledFaceSnapshots || [],
+                        webauthn_cred_id: enrolledCredId,
+                        keystroke_dynamics: getKeystrokeProfile()
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    const count = data.sample_count || (enrolledFaceSamples.length || 3);
+                    msg("reg-msg", `Enrolled successfully with ${count} biometric samples! Redirecting to sign in...`, "text-emerald-600");
+                    await sleep(1200);
+                    showAuth("login");
+                    $("login-email").value = email;
+                    debounceCheckLoginEmail();
+                    msg("login-msg", `Account ready with ${count} face samples! Verify your face to enter.`, "text-emerald-600");
+                } else {
+                    msg("reg-msg", data.error || "Registration failed.", "text-rose-600");
+                }
+            } catch (err) {
+                msg("reg-msg", "Error: " + err.message, "text-rose-600");
+            }
+        }
+
+        const b642b = b64 => Uint8Array.from(atob(b64.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+        const b2b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        const randBytes = () => crypto.getRandomValues(new Uint8Array(32));
+        const credKey = e => `vault_passkey_${e}`;
+
+        async function enrollFingerprint() {
+            const email = ($("reg-email").value || $("login-email").value).trim().toLowerCase();
+            if (!email) return msg("reg-msg", "Enter Email ID first.", "text-rose-600");
+
+            try {
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: randBytes(),
+                        rp: { name: "Cloud Vault" },
+                        user: { id: new TextEncoder().encode(email), name: email, displayName: email },
+                        pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                        timeout: 60000
+                    }
+                });
+
+                enrolledCredId = b2b64(cred.rawId);
+                localStorage.setItem(credKey(email), enrolledCredId);
+                $("reg-passkey-status").textContent = "Passkey enrolled ✓";
+                $("reg-passkey-status").className = "text-[11px] text-emerald-600 font-semibold";
+                msg("reg-msg", "Mobile sensor enrolled ✓", "text-emerald-600");
+            } catch (e) {
+                msg("reg-msg", "Sensor error: " + e.message, "text-rose-600");
+            }
+        }
+
+        async function passkeyLogin() {
+            const email = $("login-email").value.trim().toLowerCase();
+            if (!email) {
+                $("login-email").focus();
+                return msg("login-msg", "Please enter your Email ID.", "text-rose-600");
+            }
+            if (!validateEmailFormat(email)) {
+                $("login-email").focus();
+                return msg("login-msg", "Invalid Email ID format.", "text-rose-600");
+            }
+
+            try {
+                msg("login-msg", "Touch device sensor...", "text-emerald-700");
+                const stored = localStorage.getItem(credKey(email));
+                if (!stored) {
+                    await enrollFingerprint();
+                } else {
+                    await navigator.credentials.get({
+                        publicKey: {
+                            challenge: randBytes(),
+                            rpId: location.hostname,
+                            allowCredentials: [{ id: b642b(stored), type: "public-key", transports: ["internal"] }],
+                            userVerification: "required",
+                            timeout: 60000
+                        }
+                    });
+                }
+
+                await fetch(`${API}/log-webauthn`, {
+                    method: "POST",
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({ email: email, status: "ACCESS GRANTED", method: "MOBILE_SENSOR" })
+                }).catch(() => {});
+
+                unlockVault(email, email.split("@")[0], "Mobile Sensor Verified");
+            } catch (e) {
+                msg("login-msg", "Passkey error: " + e.message, "text-rose-600");
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return "0.0 KB";
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+            if (bytes < 1024 ** 3) return (bytes / (1024 ** 2)).toFixed(2) + " MB";
+            return (bytes / (1024 ** 3)).toFixed(2) + " GB";
+        }
+
+        async function syncFiles() {
+            if (!authedUser) return;
+            try {
+                const url = `${API}/files?email=${encodeURIComponent(authedUser)}&duress=${isDuressMode}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    userFiles = await res.json();
+                    renderStorageView();
+                }
+            } catch {}
+        }
+
+        function renderStorageView() {
+            const totalUsed = userFiles.reduce((sum, f) => sum + f.size_bytes, 0);
+            const clampedUsed = Math.min(totalUsed, MAX_STORAGE);
+            const freeBytes = Math.max(0, MAX_STORAGE - clampedUsed);
+            const rawPct = (clampedUsed / MAX_STORAGE) * 100;
+            const pctStr = rawPct > 0 && rawPct < 0.1 ? "<0.1%" : rawPct.toFixed(1) + "%";
+            const barWidth = clampedUsed > 0 ? Math.max(3, Math.min(100, rawPct)) : 0;
+
+            $("stat-used").textContent = formatBytes(clampedUsed);
+            $("stat-free").textContent = formatBytes(freeBytes);
+            $("stat-pct").textContent = pctStr + " Used";
+            $("stat-bar").style.width = barWidth + "%";
+            $("stat-count").textContent = userFiles.length;
+
+            $("donut-used").textContent = formatBytes(clampedUsed);
+            $("legend-used").textContent = formatBytes(clampedUsed);
+            $("legend-free").textContent = formatBytes(freeBytes);
+
+            const circumference = 314.16;
+            const offset = circumference - (Math.min(100, barWidth) / 100) * circumference;
+            $("donut-ring").style.strokeDashoffset = offset.toFixed(2);
+
+            const recentEl = $("recent-files-list");
+            if (!userFiles.length) {
+                recentEl.innerHTML = '<p class="py-6 text-center text-slate-400">Vault is empty.</p>';
+            } else {
+                recentEl.innerHTML = userFiles.slice(0, 4).map(f => `
+                    <div class="py-2.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 truncate">
+                            <i class="fa-solid fa-file-shield text-emerald-600"></i>
+                            <span class="font-medium text-slate-800 truncate">${esc(f.name)}</span>
+                            <span class="text-[9px] font-mono-code px-2 py-0.5 rounded font-bold ${f.security_tier === 'CONFIDENTIAL' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600'}">${esc(f.security_tier)}</span>
+                        </div>
+                        <span class="text-slate-400 font-mono-code shrink-0">${formatBytes(f.size_bytes)}</span>
+                    </div>
+                `).join("");
+            }
+
+            const tbody = $("files-tbody");
+            if (!userFiles.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-400">No files in this vault yet.</td></tr>';
+            } else {
+                tbody.innerHTML = userFiles.map((f, i) => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 font-semibold text-slate-900 flex items-center gap-2.5 max-w-[16rem] truncate">
+                            <i class="fa-solid fa-file-shield text-emerald-600"></i> ${esc(f.name)}
+                        </td>
+                        <td class="px-4 whitespace-nowrap space-x-1">
+                            <span class="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full font-bold ${f.security_tier === 'CONFIDENTIAL' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600'}">
+                                ${f.security_tier === 'CONFIDENTIAL' ? '<i class="fa-solid fa-diagram-project text-[9px]"></i> 3 Shards' : 'Standard'}
+                            </span>
+                            ${f.burn_after_read ? '<span class="text-[9px] bg-rose-50 text-rose-700 border border-rose-200 font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-fire text-rose-500"></i> Burn</span>' : ''}
+                            ${f.expires_at ? '<span class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 font-bold px-2 py-0.5 rounded-full"><i class="fa-regular fa-clock text-amber-600"></i> TTL</span>' : ''}
+                        </td>
+                        <td class="px-4 text-slate-500 font-mono-code whitespace-nowrap">${formatBytes(f.size_bytes)}</td>
+                        <td class="px-4 text-slate-500 font-mono-code whitespace-nowrap">${esc(f.uploaded_at)}</td>
+                        <td class="px-4 text-right whitespace-nowrap space-x-1.5">
+                            <button onclick="previewFile(${i})" class="btn-green-secondary py-1 px-2.5 text-xs font-semibold" title="In-Memory Zero-Trace Preview">
+                                <i class="fa-regular fa-eye text-emerald-600"></i> Preview
+                            </button>
+                            <button onclick="downloadFile(${i})" class="btn-action-download" title="Download file">
+                                <i class="fa-solid fa-download mr-1"></i> Download
+                            </button>
+                            <button onclick="deleteFile(${i})" class="btn-action-delete" title="Delete file">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+            }
+        }
+
+        async function handleFileUpload(e) {
+            const files = e.target.files;
+            if (!files.length) return;
+
+            const selectedTier = document.querySelector('input[name="upload-tier"]:checked')?.value || "STANDARD";
+
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append("email", authedUser);
+                fd.append("file", file);
+                fd.append("security_tier", selectedTier);
+                const burnRule = $("upload-burn-rule") ? $("upload-burn-rule").value : "NONE";
+                fd.append("burn_rule", burnRule);
+
+                let success = false;
+                let statusText = "Securing file...";
+
+                try {
+                    const res = await fetch(`${API}/upload`, { method: "POST", body: fd });
+                    const d = await res.json();
+                    success = res.ok;
+                    statusText = success ? `AES-256 (${d.security_tier} · ${d.num_shards} Shard${d.num_shards > 1 ? 's' : ''})` : (d.error || "Upload failed");
+                } catch {
+                    statusText = "Cannot reach server";
+                }
+
+                $("upload-queue").insertAdjacentHTML("afterbegin", `
+                    <div class="flex items-center justify-between p-3.5 rounded-xl border ${success ? "border-emerald-200 bg-emerald-50/50" : "border-rose-200 bg-rose-50/50"}">
+                        <div class="flex items-center gap-2.5 truncate">
+                            <i class="fa-solid fa-file-shield ${success ? "text-emerald-600" : "text-rose-600"} text-base"></i>
+                            <div>
+                                <p class="font-bold text-slate-800">${esc(file.name)}</p>
+                                <p class="text-[10px] text-slate-500 font-mono-code">${formatBytes(file.size)} • ${esc(statusText)}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold font-mono-code ${success ? "text-emerald-600" : "text-rose-600"}">${success ? "100% ✓" : "Failed"}</span>
+                    </div>
+                `);
+            }
+
+            e.target.value = "";
+            syncFiles();
+        }
+
+        async function downloadFile(index) {
+            const file = userFiles[index];
+            if (!file) return;
+
+            try {
+                const res = await fetch(`${API}/download/${file.id}?email=${encodeURIComponent(authedUser)}`);
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    return alert("Download failed: " + (err.error || "Unknown"));
+                }
+
+                const blob = await res.blob();
+                const u = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = u;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(u);
+            } catch (err) {
+                alert("Download error: " + err.message);
+            }
+        }
+
+        async function deleteFile(index) {
+            const file = userFiles[index];
+            if (!file) return;
+            if (!confirm(`Permanently delete "${file.name}"?`)) return;
+
+            try {
+                const res = await fetch(`${API}/delete/${file.id}?email=${encodeURIComponent(authedUser)}`, { method: "DELETE" });
+                if (res.ok) {
+                    syncFiles();
+                } else {
+                    alert("Delete failed.");
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        window.onload = function() {
+            showAuth("login");
+            initKeystrokeTracking();
+            loadFaceApiModels().then(ok => {
+                if (ok) console.log("Face biometrics AI engine pre-warmed.");
+            }).catch(() => {});
+        };
+    </script>
+
+    <!-- ============================================================== -->
+    <!-- MODAL 1: INTRUDER TRAP-CAM & EMAIL ALERT SNAPSHOT MODAL        -->
+    <!-- ============================================================== -->
+    <div id="modal-intruder" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-rose-200 overflow-hidden">
+            <div class="bg-rose-600 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    <h3 class="font-bold text-sm">Security Incident: Intruder Captured</h3>
+                </div>
+                <button onclick="closeIntruderModal()" class="text-white hover:text-rose-200 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="relative rounded-xl overflow-hidden bg-slate-950 aspect-[4/3] flex items-center justify-center border border-rose-300">
+                    <img id="intruder-img" src="" alt="Intruder Snapshot" class="w-full h-full object-cover">
+                    <div class="absolute top-2 left-2 bg-rose-600 text-white font-mono-code text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                        TRAP-CAM SNAPSHOT
+                    </div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1.5 font-mono-code">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Incident Timestamp:</span>
+                        <span id="intruder-time" class="font-bold text-slate-800">2026-11-21</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Origin IP Address:</span>
+                        <span id="intruder-ip" class="font-bold text-slate-800">127.0.0.1</span>
+                    </div>
+                    <div class="flex justify-between text-emerald-700 font-bold">
+                        <span>Automated Action:</span>
+                        <span>📧 Email Alert Sent to Owner ✓</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-500 text-center">A high-priority intrusion alert with this snapshot was dispatched to your registered email address.</p>
+                <div class="flex gap-2">
+                    <button onclick="dismissIntrusionAlert()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 px-3 rounded-xl font-bold text-xs transition shadow-sm">
+                        Acknowledge & Clear Alert
+                    </button>
+                    <button onclick="closeIntruderModal()" class="btn-green-secondary py-2 px-4 text-xs font-semibold">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL 2: QR MOBILE BIOMETRIC BRIDGE (ZERO-SENSOR MODE)         -->
+    <!-- ============================================================== -->
+    <div id="modal-qr" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full border border-emerald-200 overflow-hidden text-center">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-lg"></i>
+                    <h3 class="font-bold text-sm">Smartphone Biometric Bridge</h3>
+                </div>
+                <button onclick="closeQrModal()" class="text-white hover:text-emerald-200 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600">Scan this QR code with any smartphone camera to authenticate via face or fingerprint biometrics.</p>
+                <div class="p-4 bg-white border-2 border-dashed border-emerald-300 rounded-2xl inline-block shadow-inner">
+                    <img id="qr-code-img" src="" alt="Session QR" class="w-48 h-48 mx-auto object-contain">
+                </div>
+                <div class="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-700">
+                    <i class="fa-solid fa-circle-notch fa-spin text-emerald-600"></i>
+                    <span id="qr-status-text">Awaiting smartphone scan...</span>
+                </div>
+                <p class="text-[10px] text-slate-400">Desktop logs in automatically the moment biometrics are verified on phone.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL 3: IN-MEMORY ZERO-TRACE FILE PREVIEWER (LOADED IN RAM)   -->
+    <!-- ============================================================== -->
+    <div id="modal-preview" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-eye text-emerald-600"></i>
+                    <div>
+                        <h3 id="preview-filename" class="font-bold text-slate-900 text-sm">Preview</h3>
+                        <p class="text-[10px] text-slate-500 font-mono-code"><span id="preview-filesize">0 KB</span> | Zero-Trace RAM Buffer</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        <i class="fa-solid fa-memory text-emerald-600 mr-1.5"></i> Loaded strictly in browser RAM. No temporary bytes written to disk.
+                    </span>
+                    <button onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div id="preview-content-box" class="p-6 overflow-auto flex-1 flex items-center justify-center bg-slate-50 min-h-[300px]">
+                <!-- Dynamic in-memory content rendered here -->
+            </div>
+            <div class="p-3 bg-white border-t border-slate-200 flex justify-end">
+                <button onclick="closePreviewModal()" class="btn-green-secondary px-4 py-2 text-xs font-semibold">
+                    Close & Wipe RAM Buffer
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

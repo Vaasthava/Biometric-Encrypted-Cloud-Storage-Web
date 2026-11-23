@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Biometric Enclave | Cloud Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        video { transform: scaleX(-1); }
+        @keyframes scan { 0% { top: 5%; } 50% { top: 90%; } 100% { top: 5%; } }
+        .scanner-beam {
+            position: absolute; left: 5%; width: 90%; height: 2px;
+            background: linear-gradient(90deg, transparent, #34d399, #10b981, transparent);
+            box-shadow: 0 0 12px #10b981; animation: scan 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between p-4 antialiased">
+
+    <!-- Header -->
+    <header class="text-center pt-3 pb-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold mb-2">
+            <i class="fa-solid fa-mobile-screen-button"></i> Mobile Biometric Bridge
+        </div>
+        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Authorize Desktop</h1>
+        <p class="text-xs text-slate-500 mt-0.5">Zero-Sensor Biometric Access</p>
+    </header>
+
+    <!-- Main Card -->
+    <main class="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-emerald-100 p-5 space-y-4 my-auto">
+        <div id="session-info" class="flex items-center justify-between text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+            <span class="text-slate-500">Session Token:</span>
+            <span id="token-display" class="font-mono-code font-bold text-emerald-700">Connecting...</span>
+        </div>
+
+        <div>
+            <label class="text-xs font-bold text-slate-700">Email ID</label>
+            <input id="mobile-email" type="email" placeholder="Email ID" class="w-full mt-1 px-3.5 py-2.5 text-sm font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+
+        <!-- Camera box -->
+        <div class="border border-emerald-200 bg-emerald-50/40 rounded-xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-camera text-emerald-600"></i> Phone Camera Scan</span>
+                <span id="cam-badge" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-700">Ready</span>
+            </div>
+
+            <div id="cam-box" class="hidden relative rounded-xl overflow-hidden bg-slate-950 aspect-[4/3] flex items-center justify-center border border-emerald-800">
+                <video id="cam-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="cam-canvas" class="hidden"></canvas>
+                <div class="scanner-beam"></div>
+                <div class="absolute bottom-2 left-2 right-2 bg-slate-900/80 text-white text-[10px] font-mono-code px-2 py-1 rounded text-center">
+                    Look at your phone camera...
+                </div>
+            </div>
+
+            <button id="btn-start-cam" onclick="startMobileCam()" class="w-full bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-camera"></i> <span>Open Phone Camera</span>
+            </button>
+        </div>
+
+        <button id="btn-authorize" onclick="authorizeSession()" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-3 rounded-xl text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-shield-check"></i> Authorize Desktop Vault
+        </button>
+
+        <p id="mobile-msg" class="text-xs text-center min-h-[1.2rem] font-medium"></p>
+    </main>
+
+    <!-- Success Screen (Hidden by default) -->
+    <div id="success-screen" class="hidden fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-4xl mb-4 shadow-lg shadow-emerald-200">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900">Desktop Authorized!</h2>
+        <p class="text-xs text-slate-500 mt-2 max-w-xs">Your biometric verification was confirmed. Your desktop vault is now unlocked.</p>
+        <p class="text-[11px] font-mono-code text-emerald-700 mt-4 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+            You may now safely close this window.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-[10px] text-slate-400 pb-2">
+        Cloud Vault AES-256 Biometric Enclave
+    </footer>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionToken = urlParams.get("token") || "";
+        let stream = null;
+        let capturedImage = "";
+
+        if (sessionToken) {
+            $("token-display").textContent = sessionToken.slice(0, 8) + "...";
+        } else {
+            $("token-display").textContent = "Missing Token";
+        }
+
+        async function startMobileCam() {
+            try {
+                $("cam-box").classList.remove("hidden");
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                $("cam-video").srcObject = stream;
+                $("cam-badge").textContent = "Active";
+                $("cam-badge").className = "text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded";
+                $("btn-start-cam").innerHTML = '<i class="fa-solid fa-check"></i> Camera Live';
+            } catch (e) {
+                alert("Camera access denied or unavailable: " + e.message);
+            }
+        }
+
+        function captureFrame() {
+            const video = $("cam-video");
+            const canvas = $("cam-canvas");
+            if (!video.videoWidth) return "";
+            canvas.width = video.videoWidth || 320;
+            canvas.height = video.videoHeight || 240;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL("image/jpeg", 0.85);
+        }
+
+        async function authorizeSession() {
+            const email = $("mobile-email").value.trim().toLowerCase();
+            if (!email) {
+                $("mobile-email").focus();
+                $("mobile-msg").textContent = "Please enter your Email ID.";
+                $("mobile-msg").className = "text-xs text-center min-h-[1.2rem] font-medium text-rose-600";
+                return;
+            }
+
+            if (!sessionToken) {
+                alert("Invalid or missing session token. Please scan the QR code again.");
+                return;
+            }
+
+            $("btn-authorize").disabled = true;
+            $("btn-authorize").textContent = "Verifying & Authorizing...";
+
+            if (stream) {
+                capturedImage = captureFrame();
+                stream.getTracks().forEach(t => t.stop());
+            }
+
+            try {
+                const res = await fetch("/api/qr-session/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        token: sessionToken,
+                        email: email,
+                        face_image: capturedImage
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    $("success-screen").classList.remove("hidden");
+                } else {
+                    $("btn-authorize").disabled = false;
+                    $("btn-authorize").innerHTML = '<i class="fa-solid fa-shield-check"></i> Try Again';
+                    $("mobile-msg").textContent = data.error || "Authentication failed.";
+                    $("mobile-msg").className = "text-xs text-center min-h-[1.2rem] font-medium text-rose-600";
+                }
+            } catch (err) {
+                $("btn-authorize").disabled = false;
+                $("btn-authorize").innerHTML = '<i class="fa-solid fa-shield-check"></i> Authorize Desktop Vault';
+                $("mobile-msg").textContent = "Connection error: " + err.message;
+                $("mobile-msg").className = "text-xs text-center min-h-[1.2rem] font-medium text-rose-600";
+            }
+        }
+    </script>
+</body>
+</html>
